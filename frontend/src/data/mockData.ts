@@ -1,4 +1,14 @@
-import type { MealPlan, ShoppingList } from '../types';
+import type { MealPlan, ShoppingList, UserProfile } from '../types';
+
+export const demoProfile: UserProfile = {
+  name: 'Алексей',
+  nutritionGoal: 'health',
+  weeklyBudgetRub: 4200,
+  dailyCalories: 2200,
+  allergies: [],
+  dislikedFoods: ['кинза'],
+  pantryItems: ['гречка', 'оливковое масло'],
+};
 
 export const demoMealPlan: MealPlan = {
   weekStart: '2026-11-16',

@@ -1,5 +1,6 @@
 export type Screen = 'home' | 'recipe' | 'shopping' | 'stores' | 'profile' | 'settings';
 export type Tab = 'home' | 'shopping' | 'profile';
+export type NutritionGoal = 'health' | 'economy' | 'energy';
 
 export interface Palette {
   background: string;
@@ -45,4 +46,14 @@ export interface ShoppingItem {
 export interface ShoppingList {
   weekStart: string;
   items: ShoppingItem[];
+}
+
+export interface UserProfile {
+  name: string;
+  nutritionGoal: NutritionGoal;
+  weeklyBudgetRub: number;
+  dailyCalories: number;
+  allergies: string[];
+  dislikedFoods: string[];
+  pantryItems: string[];
 }

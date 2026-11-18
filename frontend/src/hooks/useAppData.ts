@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { demoMealPlan, demoShoppingList } from '../data/mockData';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { demoProfile } from '../data/mockData';
+import { generatePlannerData } from '../domain/planner';
 import { getMealPlan, getShoppingList } from '../services/api';
-import type { MealPlan, ShoppingList } from '../types';
+import type { MealPlan, ShoppingList, UserProfile } from '../types';
 
 const apiEnabled = process.env.EXPO_PUBLIC_ENABLE_API === 'true';
 
-export function useAppData() {
-  const [mealPlan, setMealPlan] = useState<MealPlan>(demoMealPlan);
-  const [shoppingList, setShoppingList] = useState<ShoppingList>(demoShoppingList);
+export function useAppData(profile: UserProfile = demoProfile) {
+  const generatedData = useMemo(() => generatePlannerData(profile), [profile]);
+  const [remoteMealPlan, setRemoteMealPlan] = useState<MealPlan | null>(null);
+  const [remoteShoppingList, setRemoteShoppingList] = useState<ShoppingList | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const request = useRef<AbortController | null>(null);
@@ -27,12 +29,12 @@ export function useAppData() {
 
     const errors: string[] = [];
     if (mealResult.status === 'fulfilled') {
-      setMealPlan(mealResult.value);
+      setRemoteMealPlan(mealResult.value);
     } else {
       errors.push(`рацион (${describeError(mealResult.reason)})`);
     }
     if (shoppingResult.status === 'fulfilled') {
-      setShoppingList(shoppingResult.value);
+      setRemoteShoppingList(shoppingResult.value);
     } else {
       errors.push(`список покупок (${describeError(shoppingResult.reason)})`);
     }
@@ -47,11 +49,19 @@ export function useAppData() {
 
   useEffect(() => {
     if (!apiEnabled) return;
+    // API refresh is intentionally started from the mount effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
     return () => request.current?.abort();
   }, [refresh]);
 
-  return { mealPlan, shoppingList, apiError, loading, refresh };
+  return {
+    mealPlan: remoteMealPlan ?? generatedData.mealPlan,
+    shoppingList: remoteShoppingList ?? generatedData.shoppingList,
+    apiError,
+    loading,
+    refresh,
+  };
 }
 
 function describeError(error: unknown): string {

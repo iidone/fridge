@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Switch, View } from 'react-native';
-import type { Palette } from '../types';
+import type { Palette, UserProfile } from '../types';
 import { AppText, Card, PageHeader, SectionTitle } from '../components/ui';
 
 function ProfileRow({
@@ -45,6 +45,7 @@ export function ProfileScreen({
   onOpenRecipe,
   onOpenStores,
   onOpenHome,
+  profile,
 }: {
   palette: Palette;
   isDark: boolean;
@@ -53,14 +54,21 @@ export function ProfileScreen({
   onOpenRecipe: () => void;
   onOpenStores: () => void;
   onOpenHome: () => void;
+  profile: UserProfile;
 }) {
+  const goalLabel = {
+    health: 'Питаться полезнее',
+    economy: 'Экономить на продуктах',
+    energy: 'Больше энергии',
+  }[profile.nutritionGoal];
+
   return (
     <>
       <PageHeader title="Профиль" subtitle="Ваш помощник в планировании" palette={palette} />
       <Card palette={palette} style={styles.profileCard}>
         <View style={styles.avatar}><AppText size={28}>😊</AppText></View>
         <View style={styles.identity}>
-          <AppText size={17} weight="700" color={palette.text}>Привет, Алексей!</AppText>
+          <AppText size={17} weight="700" color={palette.text}>Привет, {profile.name}!</AppText>
           <AppText size={12} color={palette.muted}>Планируем вкусную неделю</AppText>
         </View>
         <Pressable onPress={onOpenSettings} hitSlop={8}><AppText size={19} color={palette.muted}>⚙</AppText></Pressable>
@@ -89,7 +97,8 @@ export function ProfileScreen({
             accessibilityLabel="Тёмная тема"
           />
         </View>
-        <ProfileRow icon="♧" title="Параметры питания" detail="Цели и предпочтения" palette={palette} onPress={onOpenSettings} />
+        <ProfileRow icon="♧" title="Параметры питания" detail={`${goalLabel} · ${profile.dailyCalories} ккал/день`} palette={palette} onPress={onOpenSettings} />
+        <ProfileRow icon="⌂" title="Домашние запасы" detail={`${profile.pantryItems.length} продуктов учитываются`} palette={palette} onPress={onOpenSettings} />
         <ProfileRow icon="◷" title="Уведомления" detail="Напоминания о покупках" palette={palette} onPress={onOpenSettings} />
       </Card>
       <View style={[styles.tip, { backgroundColor: palette.greenTint }]}>

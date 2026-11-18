@@ -1,12 +1,21 @@
-mod handlers;
-mod models;
+mod api;
+mod auth;
+mod errors;
+mod infrastructure;
 mod routes;
+mod services;
+mod state;
 
 use std::{env, error::Error, net::SocketAddr, path::Path};
 
 use axum::{routing::get, Router};
 use sqlx::postgres::PgPoolOptions;
 use tower_http::cors::CorsLayer;
+
+use crate::{
+    api::handlers,
+    state::{AppState, AuthConfig},
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -31,10 +40,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     sqlx::migrate!("./migrations").run(&pool).await?;
 
+    let app_state = AppState {
+        db: pool,
+        auth: AuthConfig::from_env()?,
+    };
     let app = Router::new()
         .route("/health", get(handlers::health))
         .nest("/api/v1", routes::api_routes())
-        .with_state(pool)
+        .with_state(app_state)
         .layer(CorsLayer::permissive());
 
     let listener = tokio::net::TcpListener::bind(bind_address).await?;

@@ -1,11 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Animated, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { BottomTabBar } from './components/BottomTabBar';
 import { ConnectionNotice } from './components/ConnectionNotice';
 import { useAppData } from './hooks/useAppData';
+import { demoProfile } from './data/mockData';
 import { HomeScreen } from './screens/HomeScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
 import { RecipeScreen } from './screens/RecipeScreen';
@@ -13,7 +14,7 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { ShoppingScreen } from './screens/ShoppingScreen';
 import { StoresScreen } from './screens/StoresScreen';
 import { darkPalette, lightPalette } from './theme/palette';
-import type { Screen, Tab } from './types';
+import type { Screen, Tab, UserProfile } from './types';
 
 export default function App() {
   return (
@@ -32,11 +33,14 @@ function AppContent() {
   const [selectedDay, setSelectedDay] = useState('Пн');
   const [checkedItems, setCheckedItems] = useState<string[]>(['yogurt']);
   const [selectedStore, setSelectedStore] = useState('Пятёрочка');
+  const [profile, setProfile] = useState<UserProfile>(demoProfile);
   const palette = isDark ? darkPalette : lightPalette;
-  const screenMotion = useRef(new Animated.Value(1)).current;
-  const { mealPlan, shoppingList, apiError, loading, refresh } = useAppData();
+  const [screenMotion] = useState(() => new Animated.Value(1));
+  const { mealPlan, shoppingList, apiError, loading, refresh } = useAppData(profile);
 
   useEffect(() => {
+    // The fetched shopping list is the source of truth when API data arrives.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCheckedItems(shoppingList.items.filter((item) => item.checked).map((item) => item.id));
   }, [shoppingList]);
 
@@ -107,6 +111,7 @@ function AppContent() {
             onOpenRecipe={() => navigate('recipe')}
             onOpenStores={() => navigate('stores')}
             onOpenHome={() => navigate('home', 'home')}
+            profile={profile}
           />
         );
       case 'settings':
@@ -116,6 +121,8 @@ function AppContent() {
             isDark={isDark}
             onThemeToggle={setIsDark}
             onBack={() => navigate('profile', 'profile')}
+            profile={profile}
+            onSaveProfile={setProfile}
           />
         );
       default:
